@@ -128,6 +128,7 @@ cc_library_static {
     defaults: ["libc_defaults"],
     srcs: ["bionic/libc_init_dynamic.cpp"],
     cflags: ["-fno-stack-protector"],
+    cppflags: ["-DUSE_WRAPPER"],
 }
 
 // ========================================================
@@ -190,6 +191,7 @@ cc_library_static {
         "-Wno-unused-parameter",
         "-include netbsd-compat.h",
         "-Wframe-larger-than=66000",
+        "-DUSE_WRAPPER",
     ],
 
     local_include_dirs: [
@@ -1139,6 +1141,14 @@ cc_library_static {
                     "arch-arm64/generic/bionic/memmove.S",
                 ],
             },
+            kryo300: {
+                srcs: [
+                    "arch-arm64/kryo300/bionic/memcpy.S",
+                ],
+                exclude_srcs: [
+                    "arch-arm64/generic/bionic/memcpy.S",
+                ],
+            },
             kryo: {
                 srcs: [
                     "arch-arm64/kryo/bionic/memcpy.S",
@@ -1306,7 +1316,6 @@ cc_library_static {
                 "arch-x86_64/string/sse4-memcmp-slm.S",
                 "arch-x86_64/string/ssse3-strcmp-slm.S",
                 "arch-x86_64/string/ssse3-strncmp-slm.S",
-
                 "arch-x86_64/bionic/__bionic_clone.S",
                 "arch-x86_64/bionic/_exit_with_stack_teardown.S",
                 "arch-x86_64/bionic/__restore_rt.S",
@@ -1317,7 +1326,10 @@ cc_library_static {
         },
     },
 
-    cppflags: ["-Wold-style-cast"],
+    cppflags: ["-Wold-style-cast",
+              "-DUSE_WRAPPER",
+              ],
+  
     include_dirs: ["bionic/libstdc++/include"],
     name: "libc_bionic",
 }
@@ -1453,6 +1465,8 @@ cc_library_static {
         "bionic/sched_getcpu.cpp",
         "bionic/semaphore.cpp",
         "bionic/send.cpp",
+        "bionic/sendmsg.cpp",
+        "bionic/sendto.cpp",
         "bionic/setegid.cpp",
         "bionic/seteuid.cpp",
         "bionic/setpgrp.cpp",
@@ -1510,6 +1524,9 @@ cc_library_static {
         "bionic/wcstod.cpp",
         "bionic/wctype.cpp",
         "bionic/wmempcpy.cpp",
+        "bionic/writev.cpp",
+        "codeaurora/PropClientDispatch.cpp",
+        "codeaurora/PropClientDispatchWrite.cpp",
     ],
 
     multilib: {
@@ -1523,7 +1540,10 @@ cc_library_static {
             cflags: ["-D__ANDROID_TREBLE__"],
         },
     },
-    cppflags: ["-Wold-style-cast"],
+    cppflags: ["-Wold-style-cast",
+              "-DUSE_WRAPPER",
+              ],
+    cflags: ["-DUSE_WRAPPER"],
     local_include_dirs: ["stdio"],
     include_dirs: ["bionic/libstdc++/include"],
     name: "libc_bionic_ndk",
@@ -1772,8 +1792,11 @@ cc_library {
             "bionic/malloc_common.cpp",
             "bionic/libc_init_static.cpp",
         ],
-        cflags: ["-DLIBC_STATIC"],
-        whole_static_libs: ["libc_init_static"],
+        cflags: ["-DLIBC_STATIC",
+                 "-DUSE_WRAPPER",
+                ],
+
+        whole_static_libs: ["libc_init_static", "libjemalloc"],
     },
     shared: {
         srcs: [
@@ -1783,6 +1806,7 @@ cc_library {
             "bionic/malloc_common.cpp",
             "bionic/NetdClient.cpp",
             "arch-common/bionic/crtend_so.S",
+            "codeaurora/PropClient.cpp",
         ],
         whole_static_libs: ["libc_init_dynamic"],
     },
@@ -1808,6 +1832,7 @@ cc_library {
 
     shared_libs: ["libdl"],
     whole_static_libs: ["libc_common", "libjemalloc"],
+    cppflags: ["-DUSE_WRAPPER"],
 
     nocrt: true,
 
